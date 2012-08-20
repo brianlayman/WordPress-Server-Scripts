@@ -1,0 +1,63 @@
+#!/usr/bin/perl
+print "\nCreating MySQL database for WordPress.\n";
+
+# There are two supported methods for creating the database in this script
+# the first preferred method calls mysqladmin and the second calls mysql
+# either of these files could be in /usr/bin/ or /usr/local/bin/
+if (-e "/usr/bin/mysqladmin" ) {
+        $mysqladmin = '/usr/bin/mysqladmin';
+} else {
+        if (-e "/usr/local/bin/mysqladmin" ) {
+        $mysqladmin = '/usr/local/bin/mysqladmin';
+        } else {
+                if (-e "/usr/bin/mysql" ) {
+                        $mysql = '/usr/bin/mysql';
+                } else {
+                        if (-e "/usr/local/bin/mysql" ) {
+                                $mysql = '/usr/local/bin/mysql';
+                        } else {
+                                print "<hr/>FATAL ERROR: MYSQL AND MYSQLADMIN WERE NOT FOUND<hr/>\n";
+                                exit;
+                        }
+                }
+        }
+}
+
+# The CPanel hook "postwwwacct" is passed a hash via ARGV
+# Therefore we must convert it to a normal Perl hash containing the data
+%OPTS = @ARGV;
+
+# Of the dozen+ parameters, all we care about is the user name
+$user = $OPTS{'user'};
+$userdb = $user . '_wp';
+
+# If no username was passed, error out.
+if ($user eq "") {
+    print "Syntax: postwwwacct user <username>\n";
+        exit;
+}
+
+# If someone is playing games, exit out.
+if ($user eq "root") {
+        exit;
+}
+
+# If mysqladmin was found, use it.
+if ($mysqladmin ne "") {
+        open(HANDLE,"|$mysqladmin -u root create $userdb");
+        print HANDLE "y";
+        close(HANDLE);
+        print "calling: |$mysqladmin -u root create $userdb"
+} else {
+        # Otherwise call MySQL
+        open(HANDLE,"|$mysql -u root");
+        print HANDLE "CREATE DATABASE $userdb;";
+        close(HANDLE);
+        print "calling: CREATE DATABASE $userdb;"
+}
+
+if (-e "/scripts/postwwwacct2") {
+        print "\nSending variables to postwwwacct2.\n";
+        system("/scripts/postwwwacct2",@ARGV);
+}
+exit;

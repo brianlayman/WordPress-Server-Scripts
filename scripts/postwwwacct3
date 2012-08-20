@@ -1,0 +1,57 @@
+#!/usr/bin/perl
+print "\n In postwwwacct3.\n";
+
+use constant NOT_FOUND => -1;        # All good programmers use Constants
+use constant HOSTS_FILE => "/etc/hosts";           # Standard host file location
+
+# The CPanel hook "postwwwacct" is passed a hash via ARGV
+# Therefore we must convert it to a normal Perl hash containing the data
+%OPTS = @ARGV;
+print "\n postwwwacct3: Args Loaded.\n";
+
+# Of the dozen+ parameters, all we care about is the domain name
+$domain = $OPTS{'domain'};
+# $ip = $OPTS('useip');
+#$ip = '127.0.0.1';
+#Change this to your main domain
+$ip=`dig \@ns1.example.com $domain A +short`;
+chomp($ip);
+my $needle="www.$domain";            # I search with www. prefix
+
+my $hostline="$ip $domain www.$domain";
+print "\n postwwwacct3: Vars Done.\n";
+
+# If no username was passed, error out.
+if ($domain eq "") {
+    print "Minimum Syntax: postwwwacct3 domain <domain>\n";
+        exit;
+}
+
+# Read the file into a scalar var in the most backwards compatible way
+local( $/, *FILEHANDLE );
+open(FILEHANDLE, HOSTS_FILE) or die("Cannot access " . HOSTS_FILE);
+my $haystack = <FILEHANDLE>;
+close(FILEHANDLE);
+print "Host File Accessed\n";
+
+# Look for the domain in the file already
+my $result = index($haystack, $needle);
+
+# Index returns
+if ( $result == NOT_FOUND )
+{
+  # If the line wasn't found, add it using an echo append >>
+  open(FILEHANDLE, ">>" . HOSTS_FILE);
+  print FILEHANDLE $hostline . "\n"; #write newline
+  close(FILEHANDLE);
+  print "$hostline added to hosts file\n";
+}
+else
+{
+  print "$needle already exists in hosts file\n";
+}
+
+if (-e "/scripts/postwwwacct4") {
+        print "\nSending variables to postwwwacct4.\n";
+        system("/scripts/postwwwacct4",@ARGV);
+}

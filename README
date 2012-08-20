@@ -1,0 +1,4 @@
+Server scripts for WP automatically installing.
+This assumes you have cpanel installed and the /scripts directory off of /
+It also assumes you replace instances of example.com with an url of your own.
+It also assumes you have the latest version of WordPress in /root/custom-skel/public_html

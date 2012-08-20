@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+# The CPanel hook "postwwwacct" is passed a hash via ARGV
+# Therefore we must convert it to a normal Perl hash containing the data
+%OPTS = @ARGV;
+
+# Of the dozen+ parameters, all we care about is the domain name
+$domain = $OPTS{'domain'};
+
+# If no username was passed, error out.
+if ($domain eq "") {
+    print "Syntax: postwwwacct2 domain <domain>\n";
+        exit;
+}
+
+# If someone is playing games, exit out.
+# change this to your main domain
+if ($domain eq "example.com") {
+        exit;
+}
+
+# change this to your main domain
+print "\nAdding Hostmaster forward to valiases configuration $domain\n";
+system("echo 'hostmaster@" . $domain . ": hostmaster\@example.com' >> /etc/valiases/" . $domain);
+#system("echo 'postmaster@$domain: postmaster@example.com' >> /etc/valiases/$domain");
+system("echo 'postmaster@" . $domain . ": postmaster\@example.com' >> /etc/valiases/" . $domain);
+
+
+if (-e "/scripts/postwwwacct3") {
+        print "\nSending variables to postwwwacct3.\n";
+        system("/scripts/postwwwacct3",@ARGV);
+}
