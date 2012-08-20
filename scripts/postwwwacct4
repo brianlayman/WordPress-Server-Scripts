@@ -1,0 +1,51 @@
+#!/usr/bin/php
+<?php
+        ini_set('display_errors','On');
+        ini_set("error_log" , "/scripts/error_log");
+        error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+        echo "postwwwacct4<br/>";
+        echo("Configuring WordPress \n");
+        $opts = array();
+        $argv0 = array_shift($argv);
+        while(count($argv)) {
+                $key = array_shift($argv);
+                $value = array_shift($argv);
+                $opts[$key] = $value;
+        }
+        print_r($opts);
+
+        $dbname  = trim($opts['user']);
+        $uname   = trim($opts['user']);
+        $passwrd = trim($opts['pass']);
+        $domain = $opts['domain'];
+        $dbhost  = 'localhost';
+        $prefix  = trim(substr($uname, 0, 2)) . '_';
+		
+// Set a default prefix for your sites
+        if ( empty($prefix) )
+                $prefix = 'abc_';
+
+// Include prefix here too!
+        // Validate $prefix: it can only contain letters, numbers and underscores
+        if ( preg_match( '|[^a-z0-9_]|i', $prefix ) ) $prefix = 'abc_';
+
+        define('POSTURL', 'http://' . $opts['domain'] . '/wp-admin/setup-config.php?step=2');
+        define('POSTVARS', 'dbname=' . $dbname . '&uname=' . $uname . '&pwd=' . $passwrd . '&dbhost=' . $dbhost . '&prefix=' . $prefix . '');  // POST VARIABLES TO BE SENT
+
+        echo ("POSTURL: " . POSTURL . "\n");
+        echo ("PostVars: " . POSTVARS . "\n");
+        $ch = curl_init(POSTURL);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, POSTVARS);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_HEADER, 0);  // DO NOT RETURN HTTP HEADERS
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // RETURN THE CONTENTS OF THE CALL
+        $Rec_Data = curl_exec($ch);
+        curl_close($ch);
+
+// $opts['domain']; $opts['user']; $opts['pass'];
+// $opts['quota']; $opts['cpmod']; $opts['useip']; $opts['hascgi']; $opts['installfp'];
+// $opts['maxftp']; $opts['maxsql']; $opts['maxpop']; $opts['maxlst']; $opts['maxsub'];
+// $opts['bwlimit']; $opts['hasshell']; $opts['owner']; $opts['plan']; $opts['maxpark'];
+// $opts['maxaddon']; $opts['featurelist']; $opts['contactemail']; $opts['forcedns'];
+// $opts['useregns']
